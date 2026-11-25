@@ -76,6 +76,41 @@
           "file": "80x80.png"
         }
       ]
-    }
+    },
+    "usesPermissions": [
+      {
+        "name": "Internet",
+        "parameters": {
+          "domains": [
+            "mattnovelli.github.io"
+          ]
+        },
+        "reason": "To load Patch's settings page",
+        "required": true
+      },
+      {
+        "name": "Internet",
+        "parameters": {
+          "domains": [
+            "microsoftonline.com",
+            "msftauth.net",
+            "msauth.net",
+            "live.com"
+          ]
+        },
+        "reason": "To sign in to your Microsoft account",
+        "required": true
+      },
+      {
+        "name": "Internet",
+        "parameters": {
+          "domains": [
+            "graph.microsoft.com"
+          ]
+        },
+        "reason": "To send your messages through Outlook",
+        "required": true
+      }
+    ]
   }
 }
