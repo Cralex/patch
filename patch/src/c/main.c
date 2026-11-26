@@ -75,17 +75,15 @@ static GColor app_primary_color(void) {
 #endif
 }
 
-static GColor app_accent_color(void) {
 #ifdef PBL_COLOR
+// Only color platforms use the accent; monochrome screens draw black or white.
+static GColor app_accent_color(void) {
   return GColorFromRGB(0, 122, 255);
-#else
-  return GColorWhite;
-#endif
 }
+#endif
 
-// Menu highlight background. On monochrome displays the accent color is
-// white, which would match the white highlight text and hide the selection,
-// so use a black highlight bar instead.
+// Menu highlight background. Monochrome displays use a black highlight bar so
+// the white highlight text stays visible.
 static GColor app_menu_highlight_color(void) {
 #ifdef PBL_COLOR
   return app_accent_color();
@@ -251,9 +249,9 @@ static void empty_state_layer_update_proc(Layer *layer, GContext *ctx) {
   GColor icon_fill = show_reauth ? app_error_bg_color() : app_accent_color();
   GColor icon_glyph = GColorWhite;
 #else
-  // On monochrome displays the accent color is white (hiding the white glyph)
-  // and the error color is black (hiding the tile against the black
-  // background), so draw a white tile with a black glyph instead.
+  // On monochrome displays the error color is black (hiding the tile against
+  // the black background) and a white tile needs a dark glyph, so draw a white
+  // tile with a black glyph instead.
   GColor icon_fill = GColorWhite;
   GColor icon_glyph = GColorBlack;
 #endif
@@ -843,6 +841,7 @@ static bool send_message_request_to_js(int contact_index,
   return true;
 }
 
+#ifdef PBL_MICROPHONE
 static void dictation_callback(DictationSession *session, DictationSessionStatus status, char *transcription, void *context) {
   (void)session;
   (void)context;
@@ -858,6 +857,7 @@ static void dictation_callback(DictationSession *session, DictationSessionStatus
 
   send_message_request_to_js(s_selected_index, transcription, true, -1, false);
 }
+#endif
 
 static void open_canned_menu_for_row(uint16_t row) {
   if (s_auth_state == AppAuthStateReauthRequired || s_contact_count <= 0) {
