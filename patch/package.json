@@ -21,9 +21,6 @@
     "voice-messaging"
   ],
   "private": true,
-  "dependencies": {
-    "pebble-clay": "^1.0.4"
-  },
   "pebble": {
     "displayName": "Patch",
     "uuid": "b6b5f1c9-2a6b-4b35-bc5b-7b2e6fb6f5cc",
