@@ -491,6 +491,44 @@ static void sent_modal_window_unload(Window *window) {
   }
 }
 
+#ifdef PBL_ROUND
+// On round screens, keep modal text away from the curved edges and center the
+// title and message vertically, so longer messages aren't clipped.
+static void draw_round_modal_text(GContext *ctx, GRect bounds, const char *title, const char *message) {
+  GFont title_font = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
+  GFont message_font = fonts_get_system_font(FONT_KEY_GOTHIC_18);
+  const int16_t inset = bounds.size.w / 8;
+  const int16_t width = bounds.size.w - (2 * inset);
+  const int16_t title_h = 30;
+  const int16_t gap = 4;
+  const int16_t max_message_h = bounds.size.h - (2 * inset) - title_h - gap;
+
+  GSize message_size = graphics_text_layout_get_content_size(message,
+                                                             message_font,
+                                                             GRect(0, 0, width, max_message_h),
+                                                             GTextOverflowModeWordWrap,
+                                                             GTextAlignmentCenter);
+  int16_t message_h = message_size.h < max_message_h ? message_size.h : max_message_h;
+  int16_t top = (bounds.size.h - (title_h + gap + message_h)) / 2;
+
+  graphics_draw_text(ctx,
+                     title,
+                     title_font,
+                     GRect(inset, top, width, title_h),
+                     GTextOverflowModeTrailingEllipsis,
+                     GTextAlignmentCenter,
+                     NULL);
+
+  graphics_draw_text(ctx,
+                     message,
+                     message_font,
+                     GRect(inset, top + title_h + gap, width, message_h + 4),
+                     GTextOverflowModeWordWrap,
+                     GTextAlignmentCenter,
+                     NULL);
+}
+#endif
+
 static void error_modal_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
 
@@ -498,6 +536,9 @@ static void error_modal_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
   graphics_context_set_text_color(ctx, GColorWhite);
+#ifdef PBL_ROUND
+  draw_round_modal_text(ctx, bounds, "Send Failed", s_error_modal_message);
+#else
   graphics_draw_text(ctx,
                      "Send Failed",
                      fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
@@ -513,6 +554,7 @@ static void error_modal_layer_update_proc(Layer *layer, GContext *ctx) {
                      GTextOverflowModeWordWrap,
                      GTextAlignmentCenter,
                      NULL);
+#endif
 }
 
 static void error_modal_window_load(Window *window) {
@@ -608,6 +650,9 @@ static void notice_modal_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
   graphics_context_set_text_color(ctx, GColorWhite);
+#ifdef PBL_ROUND
+  draw_round_modal_text(ctx, bounds, "Patch", s_notice_modal_message);
+#else
   graphics_draw_text(ctx,
                      "Patch",
                      fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
@@ -623,6 +668,7 @@ static void notice_modal_layer_update_proc(Layer *layer, GContext *ctx) {
                      GTextOverflowModeWordWrap,
                      GTextAlignmentCenter,
                      NULL);
+#endif
 }
 
 static void notice_modal_window_load(Window *window) {
