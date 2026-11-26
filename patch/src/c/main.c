@@ -859,10 +859,38 @@ static void dictation_callback(DictationSession *session, DictationSessionStatus
   send_message_request_to_js(s_selected_index, transcription, true, -1, false);
 }
 
+static void open_canned_menu_for_row(uint16_t row) {
+  if (s_auth_state == AppAuthStateReauthRequired || s_contact_count <= 0) {
+    vibes_short_pulse();
+    return;
+  }
+
+  s_selected_index = row;
+  if (s_canned_count <= 0 || !s_canned_window) {
+    show_notice_modal("No canned messages in settings.");
+    vibes_short_pulse();
+    return;
+  }
+
+  if (s_canned_menu_layer) {
+    menu_layer_reload_data(s_canned_menu_layer);
+    MenuIndex selected = (MenuIndex){ .section = 0, .row = 0 };
+    menu_layer_set_selected_index(s_canned_menu_layer, selected, MenuRowAlignCenter, false);
+  }
+
+  window_stack_push(s_canned_window, true);
+}
+
 static void menu_select_click(MenuLayer *menu_layer, MenuIndex *index, void *context) {
   (void)menu_layer;
   (void)context;
   if (s_contact_count == 0) return;
+
+#ifndef PBL_MICROPHONE
+  // No microphone on this watch (e.g. aplite), so a press goes straight to
+  // the canned messages instead of dictation.
+  open_canned_menu_for_row(index->row);
+#else
   s_selected_index = index->row;
 
   if (!s_dictation) {
@@ -873,6 +901,7 @@ static void menu_select_click(MenuLayer *menu_layer, MenuIndex *index, void *con
     }
   }
   dictation_session_start(s_dictation);
+#endif
 }
 
 static uint16_t canned_menu_get_num_rows(MenuLayer *menu_layer, uint16_t section_index, void *context) {
@@ -916,26 +945,7 @@ static void canned_menu_select_click(MenuLayer *menu_layer, MenuIndex *index, vo
 static void menu_select_long_click(MenuLayer *menu_layer, MenuIndex *index, void *context) {
   (void)menu_layer;
   (void)context;
-
-  if (s_auth_state == AppAuthStateReauthRequired || s_contact_count <= 0) {
-    vibes_short_pulse();
-    return;
-  }
-
-  s_selected_index = index->row;
-  if (s_canned_count <= 0 || !s_canned_window) {
-    show_notice_modal("No canned messages in settings.");
-    vibes_short_pulse();
-    return;
-  }
-
-  if (s_canned_menu_layer) {
-    menu_layer_reload_data(s_canned_menu_layer);
-    MenuIndex selected = (MenuIndex){ .section = 0, .row = 0 };
-    menu_layer_set_selected_index(s_canned_menu_layer, selected, MenuRowAlignCenter, false);
-  }
-
-  window_stack_push(s_canned_window, true);
+  open_canned_menu_for_row(index->row);
 }
 
 static void canned_window_load(Window *window) {
